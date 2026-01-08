@@ -10,7 +10,7 @@ from langchain_core.prompts import ChatPromptTemplate
 load_dotenv()  # loads .env into environment variables
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-#OPENAI_API_KEY = os.getenv('OPENAI_API_KEY') # add your OpenAI API Key
+print("Key loaded?", bool(OPENAI_API_KEY))
 # for this example I used Alphabet Inc 10-K Report 2022 
 # https://www.sec.gov/Archives/edgar/data/1652044/000165204423000016/goog-20221231.htm
 DOC_PATH = "alphabet_10K_2022.pdf"
@@ -22,10 +22,19 @@ CHROMA_PATH = "chroma_db"
 loader = PyPDFLoader(DOC_PATH)
 pages = loader.load()
 
+print("Pages:", len(pages))
+print("First page chars:", len(pages[0].page_content) if pages else 0)
+
 # split the doc into smaller chunks i.e. chunk_size=500
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
 chunks = text_splitter.split_documents(pages)
 
+print("Chunks:", len(chunks))
+print("Non-empty chunks:", sum(1 for c in chunks if c.page_content and c.page_content.strip()))
+
+# filter empties (important)
+chunks = [c for c in chunks if c.page_content and c.page_content.strip()]
+print("Chunks after filter:", len(chunks))
 # get OpenAI Embedding model
 embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
 
